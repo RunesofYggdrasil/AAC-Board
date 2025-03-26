@@ -11,6 +11,11 @@ export interface User {
   password: string;
 }
 
+export interface Login {
+  username: string;
+  password: string;
+}
+
 export interface Session {
   id: string;
   user?: User | undefined;
@@ -42,12 +47,6 @@ export function isSession(data: any): data is Session {
 }
 
 // ---
-// Section: Regex
-// ---
-
-// Not Available Yet
-
-// ---
 // Section: Schemas
 // ---
 
@@ -58,6 +57,11 @@ export const UserSchema = z.object({
     const hashedPassword = await bcrypt.hash(value, 10);
     return hashedPassword;
   }),
+});
+
+export const LoginSchema = z.object({
+  username: z.string(),
+  password: z.string(),
 });
 
 export const SessionSchema = z.object({
