@@ -1,0 +1,28 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id         Int            @id @default(autoincrement())
+  username   String
+  password   String
+  sessions   Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  user      User     @relation(references: [id], fields: [userID], onUpdate: Cascade, onDelete: Cascade)
+  userID    Int
+  expiresAt DateTime
+
+  @@map("sessions")
+}

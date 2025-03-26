@@ -13,6 +13,7 @@
     "dropdb": "dotenv -e .env.local -- npx prisma db push --force-reset"
   },
   "dependencies": {
+    "@prisma/client": "^6.5.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "next": "15.2.4",
