@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/prisma";
 import { Login, LoginSchema } from "@/app/lib/prisma-definitions";
+import { sessionGenerateToken, sessionCreate } from "@/app/lib/user-actions";
 import bcrypt from "bcrypt";
 
 export async function POST(request: NextRequest) {
@@ -18,6 +19,8 @@ export async function POST(request: NextRequest) {
         user.password
       );
       if (password) {
+        const token = sessionGenerateToken();
+        const session = sessionCreate(token, user.id);
         return NextResponse.json(
           { message: "Login Successful: Valid Password" },
           { status: 200 }
@@ -34,15 +37,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-  } catch (error) {
-    return NextResponse.json({ error }, { status: 400 });
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const users = await prisma.user.deleteMany();
-    return NextResponse.json({ users }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error }, { status: 400 });
   }
