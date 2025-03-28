@@ -1,0 +1,12 @@
+.button {
+    border-radius: 5px;
+    display: flex;
+}
+
+.buttonImage {
+    display: block;
+}
+
+.buttonLabel {
+    display: block;
+}

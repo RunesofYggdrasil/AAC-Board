@@ -1,5 +1,7 @@
 'use client';
 
+import styles from './BoardButton.module.css';
+
 interface Props {
     image?: string;
     label?: string;
@@ -11,9 +13,14 @@ function BoardButton({ image = '', label = '', text }: Props) {
         <>
             <button
                 onClick={() => console.log(text)}
+                className={styles.button}
             >
-                {image && <img src={image}></img>}
-                {label}
+                <div className={styles.buttonImage}>
+                    {image && <img src={image}></img>}
+                </div>
+                <div className={styles.buttonLabel}>
+                    {label}
+                </div>
             </button>
         </>
     )
