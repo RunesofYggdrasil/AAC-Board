@@ -1,12 +1,76 @@
 .button {
-    border-radius: 5px;
-    display: flex;
+  height: 20em;
+  width: 20em;
+  display: flex;
+  padding: 0;
 }
 
-.buttonImage {
-    display: block;
+.image {
+  display: block;
+  height: 100%;
+  width: 100%;
+  margin: auto;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
-.buttonLabel {
-    display: block;
+.label {
+  display: block;
+  margin: auto;
+}
+
+.imageTop,
+.imageBottom {
+  flex-direction: column;
+}
+.imageTop .image {
+  height: 80%;
+  order: 1;
+}
+.imageTop .label {
+  order: 2;
+}
+.imageBottom .image {
+  height: 80%;
+  order: 2;
+}
+.imageBottom .label {
+  order: 1;
+}
+
+.imageLeft,
+.imageRight {
+  flex-direction: row;
+}
+.imageLeft .image {
+  width: 50%;
+  order: 1;
+}
+.imageLeft .label {
+  width: 50%;
+  order: 2;
+}
+.imageRight .image {
+  width: 50%;
+  order: 2;
+}
+.imageRight .label {
+  width: 50%;
+  order: 1;
+}
+
+.imageOnly .label {
+  visibility: hidden;
+  height: 0;
+  width: 0;
+}
+
+.imageHidden .image {
+  visibility: hidden;
+  height: 0;
+  width: 0;
+}
+.imageHidden .label {
+  width: 100%;
 }
