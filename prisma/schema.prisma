@@ -9,11 +9,16 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ---
+// Section: User Models
+// ---
+
 model User {
-  id         Int            @id @default(autoincrement())
-  username   String
-  password   String
-  sessions   Session[]
+  id       Int       @id @default(autoincrement())
+  username String
+  password String
+  sessions Session[]
+  profiles Profile[]
 
   @@map("users")
 }
@@ -25,4 +30,181 @@ model Session {
   expiresAt DateTime
 
   @@map("sessions")
+}
+
+// Profile model is made automatically for User by default. 
+// Profile model names must be unique per User but not per database overall.
+// Only one default Profile model per User. If one Profile gets promoted to default, the current default profile gets demoted.
+model Profile {
+  id         Int      @id @default(autoincrement())
+  name       String
+  default    Boolean
+  user       User     @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userID     Int
+  settings   Settings @relation(fields: [settingsID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  settingsID Int      @unique
+
+  @@unique(fields: [name, userID], name: "unique_profile_name")
+  @@map("profiles")
+}
+
+// Settings model could be per User or per Profile. Discuss later but assume it is per Profile with the default Profile holding the default Settings.
+// Settings model exists to declutter and easily modify Settings as a group rather than having to move it around.
+model Settings {
+  id       Int          @id @default(autoincrement())
+  profile  Profile?
+  contrast ContrastMode
+
+  @@map("settings")
+}
+
+// ---
+// Section: AAC Models
+// ---
+
+// Template model is per User, not per Profile.
+model Template {
+  id Int @id @default(autoincrement())
+
+  @@map("templates")
+}
+
+// Board model only has one folder, root folder, in order to make some features earlier. the root folder is made on board creation.
+// Board model is per Profile, not per User.
+model Board {
+  id     Int     @id @default(autoincrement())
+  folder Folder?
+  tags   Tag[]
+
+  @@map("boards")
+}
+
+// Folder model has one optional Board. root folder has a Board. every Folder beneath it does not.
+// Folder model has one optional parent Folder. root folder has no parent Folder. every Folder beneath it does.
+// Folder model's Board and parent Folder are mutually exclusive.
+model Folder {
+  id       Int      @id @default(autoincrement())
+  name     String
+  style    Style    @relation(fields: [styleID], references: [id])
+  styleID  Int
+  board    Board?   @relation(fields: [boardID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  boardID  Int?     @unique
+  parent   Folder?  @relation(name: "Tree", fields: [parentID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  parentID Int?
+  children Folder[] @relation(name: "Tree")
+  buttons  Button[]
+
+  @@map("folders")
+}
+
+// To get all Buttons by Board or by User, use recursion.
+// If a Button (or Folder) does not have an image link, use the name in place of the image.
+model Button {
+  id            Int             @id @default(autoincrement())
+  name          String
+  style         Style           @relation(fields: [styleID], references: [id])
+  styleID       Int
+  pronunciation String?
+  definition    String
+  language      Language?       @relation(fields: [languageID], references: [id])
+  languageID    Int?
+  speechPart    SpeechPart[]    @map("speech_part")
+  folder        Folder          @relation(fields: [folderID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  folderID      Int
+  tags          ButtonsOnTags[]
+
+  @@map("buttons")
+}
+
+model Style {
+  id              Int         @id @default(autoincrement())
+  image           String?
+  format          StyleFormat @default(IMAGE_TOP)
+  fontSize        Int         @default(16) @map("font_size")
+  backgroundColor String      @default("FFFFFF") @map("background_color")
+  textColor       String      @default("000000") @map("text_color")
+  borderColor     String      @default("000000") @map("border_color")
+  borderWeight    Int         @default(1) @map("border_weight")
+  rowStart        Int         @map("row_start")
+  colStart        Int         @map("col_start")
+  rowExtend       Int         @default(1) @map("row_extend")
+  colExtend       Int         @default(1) @map("col_extend")
+  folders         Folder[]
+  buttons         Button[]
+
+  @@map("styles")
+}
+
+// Tags apply to an entire Board, but Boards are not tagged for use, they simply contain a list of Tags.
+model Tag {
+  id      Int             @id @default(autoincrement())
+  name    String
+  board   Board           @relation(fields: [boardID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  boardID Int
+  buttons ButtonsOnTags[]
+
+  @@unique(fields: [name, boardID], name: "unique_tag_name")
+  @@map("tags")
+}
+
+model ButtonsOnTags {
+  id       Int    @id @default(autoincrement())
+  button   Button @relation(fields: [buttonID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  buttonID Int
+  tag      Tag    @relation(fields: [tagID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  tagID    Int
+
+  @@map("buttons_on_tags")
+}
+
+model Language {
+  id        Int               @id @default(autoincrement())
+  name      String            @unique
+  direction LanguageDirection @default(LEFT_TO_RIGHT)
+  buttons   Button[]
+
+  @@map("languages")
+}
+
+// ---
+// Section: General Enums
+// ---
+
+enum StyleFormat {
+  IMAGE_LEFT
+  IMAGE_RIGHT
+  IMAGE_TOP
+  IMAGE_BOTTOM
+  NO_TEXT
+  NO_IMAGE
+}
+
+enum SpeechPart {
+  NOUN
+  VERB
+  ADJECTIVE
+  ADVERB
+  PRONOUN
+  ADPOSITION
+  CONJUNCTION
+  INTERJECTION
+  PARTICLE
+}
+
+enum LanguageDirection {
+  LEFT_TO_RIGHT
+  RIGHT_TO_LEFT
+  TOP_TO_BOTTOM
+  BOTTOM_TO_TOP
+  OTHER
+}
+
+// ---
+// Section: Settings Enums
+// ---
+
+enum ContrastMode {
+  HIGH_CONTRAST
+  MEDIUM_CONTRAST
+  LOW_CONTRAST
 }
