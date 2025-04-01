@@ -4,9 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ---
@@ -105,10 +104,9 @@ model Button {
   style         Style           @relation(fields: [styleID], references: [id])
   styleID       Int
   pronunciation String?
-  definition    String
+  definition    String?
   language      Language?       @relation(fields: [languageID], references: [id])
   languageID    Int?
-  speechPart    SpeechPart[]    @map("speech_part")
   folder        Folder          @relation(fields: [folderID], references: [id], onUpdate: Cascade, onDelete: Cascade)
   folderID      Int
   tags          ButtonsOnTags[]
@@ -126,8 +124,8 @@ model Style {
   borderColor     String      @default("000000") @map("border_color")
   borderWeight    Int         @default(1) @map("border_weight")
   rowStart        Int         @map("row_start")
-  colStart        Int         @map("col_start")
   rowExtend       Int         @default(1) @map("row_extend")
+  colStart        Int         @map("col_start")
   colExtend       Int         @default(1) @map("col_extend")
   folders         Folder[]
   buttons         Button[]
@@ -177,18 +175,6 @@ enum StyleFormat {
   IMAGE_BOTTOM
   NO_TEXT
   NO_IMAGE
-}
-
-enum SpeechPart {
-  NOUN
-  VERB
-  ADJECTIVE
-  ADVERB
-  PRONOUN
-  ADPOSITION
-  CONJUNCTION
-  INTERJECTION
-  PARTICLE
 }
 
 enum LanguageDirection {
