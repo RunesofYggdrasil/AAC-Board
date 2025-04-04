@@ -37,11 +37,11 @@ model Session {
 model Profile {
   id         Int      @id @default(autoincrement())
   name       String
-  default    Boolean
+  default    Boolean  @default(false)
   user       User     @relation(fields: [userID], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userID     Int
   settings   Settings @relation(fields: [settingsID], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  settingsID Int      @unique
+  settingsID Int
 
   @@unique(fields: [name, userID], name: "unique_profile_name")
   @@map("profiles")
@@ -51,7 +51,7 @@ model Profile {
 // Settings model exists to declutter and easily modify Settings as a group rather than having to move it around.
 model Settings {
   id       Int          @id @default(autoincrement())
-  profile  Profile?
+  profiles Profile[]
   contrast ContrastMode
 
   @@map("settings")
@@ -99,17 +99,18 @@ model Folder {
 // To get all Buttons by Board or by User, use recursion.
 // If a Button (or Folder) does not have an image link, use the name in place of the image.
 model Button {
-  id            Int             @id @default(autoincrement())
+  id            Int                @id @default(autoincrement())
   name          String
-  style         Style           @relation(fields: [styleID], references: [id])
+  style         Style              @relation(fields: [styleID], references: [id])
   styleID       Int
   pronunciation String?
   definition    String?
-  language      Language?       @relation(fields: [languageID], references: [id])
+  language      Language?          @relation(fields: [languageID], references: [id])
   languageID    Int?
-  folder        Folder          @relation(fields: [folderID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  folder        Folder             @relation(fields: [folderID], references: [id], onUpdate: Cascade, onDelete: Cascade)
   folderID      Int
   tags          ButtonsOnTags[]
+  forms         ButtonInflection[]
 
   @@map("buttons")
 }
@@ -156,12 +157,59 @@ model ButtonsOnTags {
 }
 
 model Language {
-  id        Int               @id @default(autoincrement())
-  name      String            @unique
-  direction LanguageDirection @default(LEFT_TO_RIGHT)
-  buttons   Button[]
+  id          Int               @id @default(autoincrement())
+  name        String
+  direction   LanguageDirection @default(LEFT_TO_RIGHT)
+  buttons     Button[]
+  inflections InflectionType[]
 
   @@map("languages")
+}
+
+// InflectionType includes "gender", "tense", and more.
+// InflectionType is specific to each Language even if it is repeated so that InflectionTypes for different Languages 
+//  can have different InflectionForms, such as a "gender" InflectionType for German having "neuter" while a "gender" InflectionType for Spanish would not.
+model InflectionType {
+  id         Int              @id @default(autoincrement())
+  name       String
+  language   Language         @relation(fields: [languageID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  languageID Int
+  forms      InflectionForm[]
+
+  @@map("inflection_types")
+}
+
+// InflectionForm is specific to each InflectionType for the same reason that InflectionType is specific to each Language.
+model InflectionForm {
+  id      Int                                  @id @default(autoincrement())
+  name    String
+  type    InflectionType                       @relation(fields: [typeID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  typeID  Int
+  buttons ButtonInflectionsOnInflectionForms[]
+
+  @@map("inflection_forms")
+}
+
+// Each ButtonInflection is tied to a single Button but a list of InflectionForms. Due to the many-to-many relationship of the InflectionForms,
+//  a second table is used to manage the InflectionForms of each ButtonInflection
+model ButtonInflection {
+  id         Int                                  @id @default(autoincrement())
+  inflection String
+  button     Button                               @relation(fields: [buttonID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  buttonID   Int
+  forms      ButtonInflectionsOnInflectionForms[]
+
+  @@map("button_inflections")
+}
+
+model ButtonInflectionsOnInflectionForms {
+  id       Int              @id @default(autoincrement())
+  button   ButtonInflection @relation(fields: [buttonID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  buttonID Int
+  form     InflectionForm   @relation(fields: [formID], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  formID   Int
+
+  @@map("button_inflections_on_inflection_forms")
 }
 
 // ---

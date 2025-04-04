@@ -27,7 +27,7 @@ export interface Session {
 export interface Profile {
   id?: number | undefined;
   name: string;
-  default: boolean;
+  default?: boolean | undefined;
   user?: User | undefined;
   userID: number;
   settings?: Settings | undefined;
@@ -107,6 +107,35 @@ export interface Language {
   direction: LanguageDirection;
 }
 
+export interface InflectionType {
+  id?: number | undefined;
+  name: string;
+  language?: Language | undefined;
+  languageID: number;
+}
+
+export interface InflectionForm {
+  id?: number | undefined;
+  name: string;
+  type?: InflectionType | undefined;
+  typeID: number;
+}
+
+export interface ButtonInflection {
+  id?: number | undefined;
+  inflection: string;
+  button?: Button | undefined;
+  buttonID: number;
+}
+
+export interface ButtonInflectionsOnInflectionForms {
+  id?: number | undefined;
+  button?: ButtonInflection | undefined;
+  buttonID: number;
+  form?: InflectionForm | undefined;
+  formID: number;
+}
+
 // ---
 // Section: User-Defined Type Guards
 // ---
@@ -162,7 +191,7 @@ export const SettingsSchema: z.ZodType<Settings> = z.object({
 
 export const ProfileSchema: z.ZodType<Profile> = z.object({
   id: z.number().optional(),
-  default: z.boolean(),
+  default: z.boolean().default(false),
   name: z.string(),
   user: UserSchema.optional(),
   userID: z.number(),
@@ -239,3 +268,33 @@ export const ButtonsOnTagsSchema: z.ZodType<ButtonsOnTags> = z.object({
   tag: TagSchema.optional(),
   tagID: z.number(),
 });
+
+export const InflectionTypeSchema: z.ZodType<InflectionType> = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+  language: LanguageSchema.optional(),
+  languageID: z.number(),
+});
+
+export const InflectionFormSchema: z.ZodType<InflectionForm> = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+  type: InflectionTypeSchema.optional(),
+  typeID: z.number(),
+});
+
+export const ButtonInflectionSchema: z.ZodType<ButtonInflection> = z.object({
+  id: z.number().optional(),
+  inflection: z.string(),
+  button: ButtonSchema.optional(),
+  buttonID: z.number(),
+});
+
+export const ButtonInflectionsOnInflectionFormsSchema: z.ZodType<ButtonInflectionsOnInflectionForms> =
+  z.object({
+    id: z.number().optional(),
+    button: ButtonInflectionSchema.optional(),
+    buttonID: z.number(),
+    form: InflectionFormSchema.optional(),
+    formID: z.number(),
+  });
